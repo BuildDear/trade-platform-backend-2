@@ -42,10 +42,10 @@ async def create_trader(
 
 async def update_trader(
     session: AsyncSession,
-    trader: TraderModel,
+    trader: TraderSchem,
     trader_update: TraderUpdateSchem | TraderUpdatePartialSchem,
     partial: bool = False,
-) -> TraderModel:
+) -> TraderSchem:
     """
     PUT and PATCH trader
     """
@@ -57,7 +57,7 @@ async def update_trader(
 
 async def delete_trader(
     session: AsyncSession,
-    trader: TraderModel,
+    trader: TraderSchem,
 ) -> None:
     """
     Delete trader

@@ -4,7 +4,12 @@ from starlette import status
 
 from api_v1.traders import crud
 from api_v1.traders.dependencies import trader_by_id
-from api_v1.traders.schemas import TraderSchem, TraderCreateSchem, TraderUpdateSchem
+from api_v1.traders.schemas import (
+    TraderSchem,
+    TraderCreateSchem,
+    TraderUpdateSchem,
+    TraderUpdatePartialSchem,
+)
 from core import db_helper
 
 router = APIRouter(prefix="/traders", tags=["Traders"])
@@ -51,3 +56,27 @@ async def update_product(
         trader=trader,
         trader_update=trader_update,
     )
+
+
+# Endpoint to patch trader by id
+@router.patch("/{trader_id}/")
+async def update_product(
+    trader_update: TraderUpdatePartialSchem,
+    trader: TraderSchem = Depends(trader_by_id),
+    session: AsyncSession = Depends(db_helper.scoped_session_dependency),
+):
+    return await crud.update_trader(
+        session=session,
+        trader=trader,
+        trader_update=trader_update,
+        partial=True,
+    )
+
+
+# Endpoint to delete trader by id
+@router.delete("/{trader_id}/")
+async def delete_product(
+    trader: TraderSchem = Depends(trader_by_id),
+    session: AsyncSession = Depends(db_helper.scoped_session_dependency),
+) -> None:
+    await crud.delete_trader(session=session, trader=trader)
