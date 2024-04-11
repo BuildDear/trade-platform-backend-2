@@ -3,15 +3,11 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 
-from core import Base
-from core.models.db_helper import db_helper
 from api_v1.traders.views import router as traders_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with db_helper.engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
 
     yield
 
