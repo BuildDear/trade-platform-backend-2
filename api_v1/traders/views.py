@@ -30,9 +30,11 @@ async def create_trader(
     return await crud.create_trader(session=session, trader_in=trader_in)
 
 
-#
+# Endpoint to get trader by id
 # @router.get("/{trader_id}/", response_model=Trader)
 # async def get_product(
 #     trader: Trader = Depends(trader_by_id),
 # ):
 #     return trader
+
+

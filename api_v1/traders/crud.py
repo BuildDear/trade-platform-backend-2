@@ -1,7 +1,12 @@
 from sqlalchemy import select, Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api_v1.traders.schemas import TraderCreate, Trader
+from api_v1.traders.schemas import (
+    TraderCreate,
+    Trader,
+    TraderUpdate,
+    TraderUpdatePartial,
+)
 from core import TraderModel
 
 
@@ -15,11 +20,11 @@ async def get_traders(session: AsyncSession) -> list[TraderModel]:
     return list(traders)
 
 
-async def get_trader(session: AsyncSession, trader_id: int) -> Trader | None:
+async def get_trader(session: AsyncSession, trader_id: int) -> TraderModel | None:
     """
     Retrieves a trader by ID from the database asynchronously.
     """
-    return await session.get(Trader, trader_id)
+    return await session.get(TraderModel, trader_id)
 
 
 async def create_trader(session: AsyncSession, trader_in: TraderCreate) -> TraderModel:
@@ -31,3 +36,29 @@ async def create_trader(session: AsyncSession, trader_in: TraderCreate) -> Trade
     await session.commit()
     await session.refresh(trader)
     return trader
+
+
+async def update_product(
+    session: AsyncSession,
+    trader: TraderModel,
+    trader_update: TraderUpdate | TraderUpdatePartial,
+    partial: bool = False,
+) -> TraderModel:
+    """
+    PUT and PATCH trader
+    """
+    for name, value in trader_update.model_dump(exclude_unset=partial).items():
+        setattr(trader, name, value)
+    await session.commit()
+    return trader
+
+
+async def delete_product(
+    session: AsyncSession,
+    trader: TraderModel,
+) -> None:
+    """
+    Delete trader
+    """
+    await session.delete(trader)
+    await session.commit()
