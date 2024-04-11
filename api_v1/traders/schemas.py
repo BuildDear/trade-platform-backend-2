@@ -10,23 +10,17 @@ from pydantic import (
 )
 
 
-class TraderCreate(BaseModel):
-    """
-    Pydantic model for creating a trader.
-
-    This model defines the structure and constraints for creating a trader.
-    """
+class TraderBase(BaseModel):
 
     username: Annotated[str, MinLen(3), MaxLen(20)]
     email: EmailStr
 
 
-class Trader(TraderCreate):
-    """
-    Pydantic model representing a trader.
+class TraderCreate(TraderBase):
+    pass
 
-    This model inherits from TraderCreate and adds an 'id' field.
-    """
+
+class Trader(TraderCreate):
 
     model_config = ConfigDict(from_attributes=True)
     id: int

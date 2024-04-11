@@ -4,7 +4,7 @@ from starlette import status
 
 from api_v1.traders import crud
 from api_v1.traders.schemas import Trader, TraderCreate
-from core.models.db_helper import db_helper
+from core import db_helper
 
 router = APIRouter(prefix="/traders", tags=["Traders"])
 
@@ -23,7 +23,7 @@ async def get_traders(
     response_model=Trader,
     status_code=status.HTTP_201_CREATED,
 )
-async def create_product(
+async def create_trader(
     trader_in: TraderCreate,
     session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ):

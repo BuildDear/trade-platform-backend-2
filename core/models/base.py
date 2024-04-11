@@ -12,12 +12,7 @@ class Base(DeclarativeBase):
     def __tablename__(cls) -> str:
         """
         Generates a default table name based on the class name.
-
-        :return: Table name as a string.
         """
-        return f"{cls.__name__.lower()}s"  # Generates a table name by converting the class name to lowercase and
-        # appending 's'
+        return f"{cls.__name__.lower()}s"
 
-    id: Mapped[int] = mapped_column(
-        primary_key=True
-    )  # Defines an 'id' column as a primary key
+    id: Mapped[int] = mapped_column(primary_key=True)
