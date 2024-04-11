@@ -10,26 +10,26 @@ from pydantic import (
 )
 
 
-class TraderBase(BaseModel):
+class TraderBaseSchem(BaseModel):
 
     username: Annotated[str, MinLen(3), MaxLen(20)]
     email: EmailStr
 
 
-class TraderCreate(TraderBase):
+class TraderCreateSchem(TraderBaseSchem):
     pass
 
 
-class TraderUpdate(TraderCreate):
+class TraderUpdateSchem(TraderCreateSchem):
     pass
 
 
-class TraderUpdatePartial(TraderCreate):
+class TraderUpdatePartialSchem(TraderCreateSchem):
     username: Annotated[str, MinLen(3), MaxLen(20)] | None = None
     email: EmailStr | None = None
 
 
-class Trader(TraderCreate):
+class TraderSchem(TraderCreateSchem):
 
     model_config = ConfigDict(from_attributes=True)
     id: int

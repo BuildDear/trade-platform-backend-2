@@ -4,6 +4,6 @@ __all__ = (
     "db_helper",
 )
 
-from .models.base import Base
-from .models.tradermodel import TraderModel
+from .models.base_model import Base
+from .models.trader_model import TraderModel
 from .models.db_helper import db_helper

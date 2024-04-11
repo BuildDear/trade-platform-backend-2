@@ -2,10 +2,10 @@ from sqlalchemy import select, Result
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api_v1.traders.schemas import (
-    TraderCreate,
-    Trader,
-    TraderUpdate,
-    TraderUpdatePartial,
+    TraderCreateSchem,
+    TraderSchem,
+    TraderUpdateSchem,
+    TraderUpdatePartialSchem,
 )
 from core import TraderModel
 
@@ -27,7 +27,9 @@ async def get_trader(session: AsyncSession, trader_id: int) -> TraderModel | Non
     return await session.get(TraderModel, trader_id)
 
 
-async def create_trader(session: AsyncSession, trader_in: TraderCreate) -> TraderModel:
+async def create_trader(
+    session: AsyncSession, trader_in: TraderCreateSchem
+) -> TraderModel:
     """
     Creates a new trader in the database asynchronously.
     """
@@ -38,10 +40,10 @@ async def create_trader(session: AsyncSession, trader_in: TraderCreate) -> Trade
     return trader
 
 
-async def update_product(
+async def update_trader(
     session: AsyncSession,
     trader: TraderModel,
-    trader_update: TraderUpdate | TraderUpdatePartial,
+    trader_update: TraderUpdateSchem | TraderUpdatePartialSchem,
     partial: bool = False,
 ) -> TraderModel:
     """
@@ -53,7 +55,7 @@ async def update_product(
     return trader
 
 
-async def delete_product(
+async def delete_trader(
     session: AsyncSession,
     trader: TraderModel,
 ) -> None:
