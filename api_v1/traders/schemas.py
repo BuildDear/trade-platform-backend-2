@@ -3,27 +3,27 @@ from pydantic import BaseModel, EmailStr
 from annotated_types import MinLen, MaxLen
 
 
-class TraderBaseSchem(BaseModel):
+class TraderBaseSchema(BaseModel):
     email: EmailStr
     password: Annotated[str, MinLen(8), MaxLen(64)]
     name: Annotated[str, MinLen(1), MaxLen(64)]
     surname: Annotated[str, MinLen(1), MaxLen(64)]
 
 
-class TraderCreateSchem(TraderBaseSchem):
+class TraderCreateSchema(TraderBaseSchema):
     pass
 
 
-class TraderUpdateSchem(TraderBaseSchem):
+class TraderUpdateSchema(TraderBaseSchema):
     pass
 
 
-class TraderUpdatePartialSchem(BaseModel):
+class TraderUpdatePartialSchema(BaseModel):
     email: EmailStr | None = None
     password: Annotated[str, MinLen(8), MaxLen(64)] | None = None
     name: Annotated[str, MinLen(1), MaxLen(64)] | None = None
     surname: Annotated[str, MinLen(1), MaxLen(64)] | None = None
 
 
-class TraderSchem(TraderBaseSchem):
+class TraderSchema(TraderBaseSchema):
     id: int

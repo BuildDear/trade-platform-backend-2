@@ -5,10 +5,10 @@ from starlette import status
 from api_v1.traders import crud
 from api_v1.traders.dependencies import trader_by_id
 from api_v1.traders.schemas import (
-    TraderSchem,
-    TraderCreateSchem,
-    TraderUpdateSchem,
-    TraderUpdatePartialSchem,
+    TraderSchema,
+    TraderCreateSchema,
+    TraderUpdateSchema,
+    TraderUpdatePartialSchema,
 )
 from core import db_helper
 
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/traders", tags=["Traders"])
 
 
 # Endpoint to get all traders
-@router.get("/", response_model=list[TraderSchem])
+@router.get("/", response_model=list[TraderSchema])
 async def get_traders(
     session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ):
@@ -24,9 +24,9 @@ async def get_traders(
 
 
 # Endpoint to get trader by id
-@router.get("/{trader_id}/", response_model=TraderSchem)
+@router.get("/{trader_id}/", response_model=TraderSchema)
 async def get_product(
-    trader: TraderSchem = Depends(trader_by_id),
+    trader: TraderSchema = Depends(trader_by_id),
 ):
     return trader
 
@@ -34,11 +34,11 @@ async def get_product(
 # Endpoint to create a new trader
 @router.post(
     "/",
-    response_model=TraderSchem,
+    response_model=TraderSchema,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_trader(
-    trader_in: TraderCreateSchem,
+    trader_in: TraderCreateSchema,
     session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ):
     return await crud.create_trader(session=session, trader_in=trader_in)
@@ -47,8 +47,8 @@ async def create_trader(
 # Endpoint to put trader by id
 @router.put("/{trader_id}/")
 async def update_product(
-    trader_update: TraderUpdateSchem,
-    trader: TraderSchem = Depends(trader_by_id),
+    trader_update: TraderUpdateSchema,
+    trader: TraderSchema = Depends(trader_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ):
     return await crud.update_trader(
@@ -61,8 +61,8 @@ async def update_product(
 # Endpoint to patch trader by id
 @router.patch("/{trader_id}/")
 async def update_product(
-    trader_update: TraderUpdatePartialSchem,
-    trader: TraderSchem = Depends(trader_by_id),
+    trader_update: TraderUpdatePartialSchema,
+    trader: TraderSchema = Depends(trader_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ):
     return await crud.update_trader(
@@ -76,7 +76,7 @@ async def update_product(
 # Endpoint to delete trader by id
 @router.delete("/{trader_id}/")
 async def delete_product(
-    trader: TraderSchem = Depends(trader_by_id),
+    trader: TraderSchema = Depends(trader_by_id),
     session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ) -> None:
     await crud.delete_trader(session=session, trader=trader)
