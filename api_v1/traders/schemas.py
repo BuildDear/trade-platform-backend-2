@@ -1,35 +1,29 @@
 from typing import Annotated
-from annotated_types import (
-    MinLen,
-    MaxLen,
-)
-from pydantic import (
-    BaseModel,
-    EmailStr,
-    ConfigDict,
-)
+from pydantic import BaseModel, EmailStr
+from annotated_types import MinLen, MaxLen
 
 
 class TraderBaseSchem(BaseModel):
-
-    username: Annotated[str, MinLen(3), MaxLen(20)]
     email: EmailStr
+    password: Annotated[str, MinLen(8), MaxLen(64)]
+    name: Annotated[str, MinLen(1), MaxLen(64)]
+    surname: Annotated[str, MinLen(1), MaxLen(64)]
 
 
 class TraderCreateSchem(TraderBaseSchem):
     pass
 
 
-class TraderUpdateSchem(TraderCreateSchem):
+class TraderUpdateSchem(TraderBaseSchem):
     pass
 
 
-class TraderUpdatePartialSchem(TraderCreateSchem):
-    username: Annotated[str, MinLen(3), MaxLen(20)] | None = None
+class TraderUpdatePartialSchem(BaseModel):
     email: EmailStr | None = None
+    password: Annotated[str, MinLen(8), MaxLen(64)] | None = None
+    name: Annotated[str, MinLen(1), MaxLen(64)] | None = None
+    surname: Annotated[str, MinLen(1), MaxLen(64)] | None = None
 
 
-class TraderSchem(TraderCreateSchem):
-
-    model_config = ConfigDict(from_attributes=True)
+class TraderSchem(TraderBaseSchem):
     id: int
