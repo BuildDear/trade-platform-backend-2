@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 from pydantic import BaseModel, EmailStr
 from annotated_types import MinLen, MaxLen
 
@@ -8,6 +8,7 @@ class TraderBaseSchema(BaseModel):
     password: Annotated[str, MinLen(8), MaxLen(64)]
     name: Annotated[str, MinLen(1), MaxLen(64)]
     surname: Annotated[str, MinLen(1), MaxLen(64)]
+    application_ids: List[int] = []
 
 
 class TraderCreateSchema(TraderBaseSchema):
@@ -23,6 +24,8 @@ class TraderUpdatePartialSchema(BaseModel):
     password: Annotated[str, MinLen(8), MaxLen(64)] | None = None
     name: Annotated[str, MinLen(1), MaxLen(64)] | None = None
     surname: Annotated[str, MinLen(1), MaxLen(64)] | None = None
+    # Додавання можливості часткового оновлення ідентифікаторів заявок
+    application_ids: List[int] | None = None
 
 
 class TraderSchema(TraderBaseSchema):
