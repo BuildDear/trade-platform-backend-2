@@ -16,6 +16,6 @@ class TraderModel(Base):
     password: Mapped[str] = mapped_column(String(64), nullable=False)
     name: Mapped[str] = mapped_column(String(64), nullable=False)
     surname: Mapped[str] = mapped_column(String(64), nullable=False)
-    applications: Mapped[list["ApplicationModel"]] = relationship(
-        back_populates="trader"
+    applications: Mapped[list["ApplicationModel"] | None] = relationship(
+        back_populates="trader",
     )
