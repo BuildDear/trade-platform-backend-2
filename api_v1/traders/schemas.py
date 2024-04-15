@@ -10,14 +10,12 @@ class TraderBaseSchema(BaseModel):
     model_config = ConfigDict(strict=True)
 
     email: EmailStr
-    password: bytes
     name: Annotated[str, MinLen(1), MaxLen(64)]
     surname: Annotated[str, MinLen(1), MaxLen(64)]
-    active: bool = True
 
 
 class TraderCreateSchema(TraderBaseSchema):
-    pass
+    password: str
 
 
 class TraderUpdateSchema(TraderBaseSchema):
@@ -33,5 +31,7 @@ class TraderUpdatePartialSchema(TraderCreateSchema):
 
 class TraderSchema(TraderBaseSchema):
     id: int
+    password: bytes
     created_at: datetime
     updated_at: datetime
+    is_active: bool = True

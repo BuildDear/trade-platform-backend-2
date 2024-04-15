@@ -13,9 +13,10 @@ class TraderModel(Base):
     __tablename__ = "traders"
 
     email: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
-    password: Mapped[str] = mapped_column(String(64), nullable=False)
+    password: Mapped[bytes] = mapped_column(nullable=False)
     name: Mapped[str] = mapped_column(String(64), nullable=False)
     surname: Mapped[str] = mapped_column(String(64), nullable=False)
     applications: Mapped[list["ApplicationModel"] | None] = relationship(
         back_populates="trader",
     )
+    is_active: Mapped[bool] = mapped_column(default=True)

@@ -2,7 +2,10 @@ from datetime import timedelta, datetime
 
 import bcrypt
 import jwt
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from api_v1.traders.schemas import TraderCreateSchema
+from core import TraderModel
 from core.config import settings
 
 
@@ -13,6 +16,8 @@ def encode_jwt(
     expire_minutes: int = settings.auth_jwt.access_token_expire_minutes,
     expire_timedelta: timedelta | None = None,
 ) -> str:
+    """Encode JWT with payload"""
+
     to_encode = payload.copy()
     now = datetime.utcnow()
     if expire_timedelta:
@@ -36,6 +41,8 @@ def decode_jwt(
     public_key: str = settings.auth_jwt.public_key_path.read_text(),
     algorithm: str = settings.auth_jwt.algorithm,
 ) -> dict:
+    """Decode JWT token"""
+
     decoded = jwt.decode(
         token,
         public_key,
@@ -43,9 +50,12 @@ def decode_jwt(
     )
     return decoded
 
+
 def hash_password(
     password: str,
 ) -> bytes:
+    """Hash Password using bcrypt"""
+
     salt = bcrypt.gensalt()
     pwd_bytes: bytes = password.encode()
     return bcrypt.hashpw(pwd_bytes, salt)
@@ -55,7 +65,30 @@ def validate_password(
     password: str,
     hashed_password: bytes,
 ) -> bool:
+    """Validate Password against hashed version"""
+
     return bcrypt.checkpw(
         password=password.encode(),
         hashed_password=hashed_password,
     )
+
+
+async def registration(
+    session: AsyncSession, trader_in: TraderCreateSchema
+) -> TraderModel:
+    """
+    Creates a new trader in the database asynchronously.
+    """
+    try:
+        password = trader_in.password
+        trader_data = trader_in.dict(exclude={"password"})
+
+        trader = TraderModel(**trader_data, password=hash_password(password))
+
+        session.add(trader)
+        await session.commit()
+        await session.refresh(trader)
+        return trader
+    except Exception as e:
+        await session.rollback()
+        raise e
