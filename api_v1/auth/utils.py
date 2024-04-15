@@ -1,5 +1,6 @@
 from datetime import timedelta, datetime
 
+import bcrypt
 import jwt
 
 from core.config import settings
@@ -28,3 +29,11 @@ def encode_jwt(
         algorithm=algorithm,
     )
     return encoded
+
+
+def hash_password(
+    password: str,
+) -> bytes:
+    salt = bcrypt.gensalt()
+    pwd_bytes: bytes = password.encode()
+    return bcrypt.hashpw(pwd_bytes, salt)
