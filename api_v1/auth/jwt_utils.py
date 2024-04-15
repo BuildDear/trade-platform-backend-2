@@ -2,10 +2,14 @@ from datetime import timedelta, datetime
 
 import bcrypt
 import jwt
+from fastapi import Form, HTTPException, Depends
+from sqlalchemy import select
+
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette import status
 
 from api_v1.traders.schemas import TraderCreateSchema
-from core import TraderModel
+from core import TraderModel, db_helper
 from core.config import settings
 
 
@@ -92,3 +96,34 @@ async def registration(
     except Exception as e:
         await session.rollback()
         raise e
+
+
+async def validate_auth_user(
+    email: str = Form(),
+    password: str = Form(),
+    db: AsyncSession = Depends(db_helper.get_scoped_session),
+):
+    unauthed_exc = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="invalid username or password",
+    )
+
+    result = await db.execute(select(TraderModel).where(TraderModel.email == email))
+    user = result.scalars().first()
+
+    if not user:
+        raise unauthed_exc
+
+    if not validate_password(
+        password=password,
+        hashed_password=user.password,
+    ):
+        raise unauthed_exc
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="user inactive",
+        )
+
+    return user
