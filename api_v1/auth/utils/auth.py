@@ -1,8 +1,5 @@
-from datetime import timedelta, datetime
-
 import bcrypt
-import jwt
-from fastapi import Form, HTTPException, Depends
+from fastapi import Form, Depends, HTTPException
 from sqlalchemy import select
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,49 +7,6 @@ from starlette import status
 
 from api_v1.traders.schemas import TraderCreateSchema
 from core import TraderModel, db_helper
-from core.config import settings
-
-
-def encode_jwt(
-    payload: dict,
-    private_key: str = settings.auth_jwt.private_key_path.read_text(),
-    algorithm: str = settings.auth_jwt.algorithm,
-    expire_minutes: int = settings.auth_jwt.access_token_expire_minutes,
-    expire_timedelta: timedelta | None = None,
-) -> str:
-    """Encode JWT with payload"""
-
-    to_encode = payload.copy()
-    now = datetime.utcnow()
-    if expire_timedelta:
-        expire = now + expire_timedelta
-    else:
-        expire = now + timedelta(minutes=expire_minutes)
-    to_encode.update(
-        exp=expire,
-        iat=now,
-    )
-    encoded = jwt.encode(
-        to_encode,
-        private_key,
-        algorithm=algorithm,
-    )
-    return encoded
-
-
-def decode_jwt(
-    token: str | bytes,
-    public_key: str = settings.auth_jwt.public_key_path.read_text(),
-    algorithm: str = settings.auth_jwt.algorithm,
-) -> dict:
-    """Decode JWT token"""
-
-    decoded = jwt.decode(
-        token,
-        public_key,
-        algorithms=[algorithm],
-    )
-    return decoded
 
 
 def hash_password(
@@ -93,19 +47,28 @@ async def registration(
         await session.commit()
         await session.refresh(trader)
         return trader
+
     except Exception as e:
         await session.rollback()
         raise e
+
+
+async def query_user_by_email(email: str, db: AsyncSession) -> TraderModel:
+    """Query user by email"""
+    result = await db.execute(select(TraderModel).where(TraderModel.email == email))
+    return result.scalars().first()
 
 
 async def validate_auth_user(
     email: str = Form(),
     password: str = Form(),
     db: AsyncSession = Depends(db_helper.get_scoped_session),
-):
+) -> TraderModel:
+    """Validate authentication for user"""
+
     unauthed_exc = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="invalid username or password",
+        detail="Invalid username or password",
     )
 
     result = await db.execute(select(TraderModel).where(TraderModel.email == email))
@@ -123,7 +86,7 @@ async def validate_auth_user(
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="user inactive",
+            detail="User inactive",
         )
 
     return user
