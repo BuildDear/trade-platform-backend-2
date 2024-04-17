@@ -4,7 +4,11 @@ from starlette import status
 
 from api_v1.auth.schemas import TokenInfo
 from api_v1.auth.utils import jwt, auth
-from api_v1.auth.utils.auth import validate_auth_user
+from api_v1.auth.utils.auth import (
+    validate_auth_user,
+    get_current_token_payload,
+    get_current_active_auth_user,
+)
 from api_v1.traders.schemas import TraderSchema, TraderCreateSchema
 from core import db_helper
 
@@ -40,3 +44,17 @@ def auth_user_issue_jwt(
         access_token=token,
         token_type="Bearer",
     )
+
+
+# Endpoint to get current user
+@router.get("/users/me/")
+def auth_user_check_self_info(
+    payload: dict = Depends(get_current_token_payload),
+    user: TraderSchema = Depends(get_current_active_auth_user),
+):
+
+    return {
+        "name": user.name,
+        "surname": user.surname,
+        "email": user.email,
+    }
