@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from api_v1.traders.schemas import TraderCreateSchema
+from api_v1.traders.schemas import TraderCreateSchema, TraderSchema
 from core import TraderModel, db_helper
 from core.config import settings
 
@@ -55,3 +55,23 @@ def decode_jwt(
         algorithms=[algorithm],
     )
     return decoded
+
+
+def create_access_token(user: TraderSchema):
+    jwt_payload = {
+        "sub": user.email,
+        "email": user.email,
+        "name": user.name,
+        "surname": user.surname,
+    }
+    return encode_jwt(jwt_payload)
+
+
+def create_refresh_token(user: TraderSchema):
+    jwt_payload = {
+        "sub": user.email,
+        "email": user.email,
+        "name": user.name,
+        "surname": user.surname,
+    }
+    return encode_jwt(jwt_payload)

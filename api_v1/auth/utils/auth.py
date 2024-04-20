@@ -1,6 +1,10 @@
 import bcrypt
 from fastapi import Form, Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer,
+    OAuth2PasswordBearer,
+)
 from jwt import InvalidTokenError
 from sqlalchemy import select
 
@@ -12,7 +16,10 @@ from api_v1.traders.schemas import TraderCreateSchema, TraderSchema
 from core import TraderModel, db_helper
 
 
-http_bearer = HTTPBearer()
+# http_bearer = HTTPBearer()
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/auth/login/",
+)
 
 
 def hash_password(
@@ -100,12 +107,12 @@ async def validate_auth_user(
 
 
 def get_current_token_payload(
-    credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
-    # token: str = Depends(oauth2_scheme),
+    # credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
+    token: str = Depends(oauth2_scheme),
 ) -> dict:
     """Decrypt user content"""
 
-    token = credentials.credentials
+    # token = credentials.credentials
     try:
         payload = jwt.decode_jwt(
             token=token,

@@ -9,6 +9,7 @@ from api_v1.auth.utils.auth import (
     get_current_token_payload,
     get_current_active_auth_user,
 )
+from api_v1.auth.utils.jwt import create_access_token
 from api_v1.traders.schemas import TraderSchema, TraderCreateSchema
 from core import db_helper
 
@@ -33,16 +34,10 @@ async def user_registration(
 def auth_user_issue_jwt(
     user: TraderSchema = Depends(validate_auth_user),
 ):
-    jwt_payload = {
-        "sub": user.email,
-        "email": user.email,
-        "name": user.name,
-        "surname": user.surname,
-    }
-    token = jwt.encode_jwt(jwt_payload)
+    access_token = create_access_token(user)
+
     return TokenInfo(
-        access_token=token,
-        token_type="Bearer",
+        access_token=access_token,
     )
 
 
