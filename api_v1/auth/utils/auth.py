@@ -87,34 +87,6 @@ async def query_user_by_email(email: str, session: AsyncSession) -> TraderModel:
     return result.scalars().first()
 
 
-async def get_user_by_token_sub(
-    payload: dict,
-    session: AsyncSession = Depends(db_helper.scoped_session_dependency),
-) -> TraderModel:
-    """Get auth user"""
-    email = payload.get("sub", "Email not found")
-    print(email, "email")
-
-    # result = await session.execute(
-    #     select(TraderModel).where(TraderModel.email == email)
-    # )
-    # user = result.scalars().first()
-
-    stat = select(TraderModel).order_by(TraderModel.id)
-    result = await session.execute(stat)
-    user = result.scalars().all()
-
-    print(user, "userrrrrrr")
-
-    if user:
-        return user
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="token invalid (user not found)",
-    )
-
-
 class UserGetterFromToken:
     def __init__(self, token_type: str):
         self.token_type = token_type
@@ -127,12 +99,11 @@ class UserGetterFromToken:
         await validate_token_type(payload, self.token_type)
 
         email = payload.get("sub", "Email not found")
+
         result = await session.execute(
             select(TraderModel).where(TraderModel.email == email)
         )
         user = result.scalars().first()
-
-        print(user, "userrrrrrr")
 
         if user:
             return user
@@ -141,8 +112,6 @@ class UserGetterFromToken:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="token invalid (user not found)",
         )
-
-        # return await get_user_by_token_sub(payload=payload)
 
 
 get_current_auth_user = UserGetterFromToken(ACCESS_TOKEN_TYPE)
