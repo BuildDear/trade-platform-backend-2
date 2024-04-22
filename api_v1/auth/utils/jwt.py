@@ -71,9 +71,9 @@ def create_jwt(
 def create_access_token(user: TraderSchema) -> str:
     jwt_payload = {
         # subject
-        "sub": user.username,
-        "username": user.username,
-        "email": user.email,
+        "sub": user.email,
+        "name": user.name,
+        "surname": user.surname,
         # "logged_in_at"
     }
     return create_jwt(
@@ -85,7 +85,7 @@ def create_access_token(user: TraderSchema) -> str:
 
 def create_refresh_token(user: TraderSchema) -> str:
     jwt_payload = {
-        "sub": user.username,
+        "sub": user.email,
         # "username": user.username,
     }
     return create_jwt(

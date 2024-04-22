@@ -13,6 +13,7 @@ async def trader_by_id(
     session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ) -> TraderModel:
     trader = await crud.get_trader(session=session, trader_id=trader_id)
+
     if trader is not None:
         return trader
 

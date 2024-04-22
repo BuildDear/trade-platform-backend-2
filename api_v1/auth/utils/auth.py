@@ -1,7 +1,8 @@
+from typing import Annotated
+
 import bcrypt
-from fastapi import Form, Depends, HTTPException
+from fastapi import Depends, HTTPException, Query
 from fastapi.security import (
-    HTTPAuthorizationCredentials,
     HTTPBearer,
     OAuth2PasswordBearer,
 )
@@ -12,11 +13,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from api_v1.auth.utils import jwt
+from api_v1.auth.utils.jwt import ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE
+from api_v1.auth.utils.validation import validate_token_type
 from api_v1.traders.schemas import TraderCreateSchema, TraderSchema
 from core import TraderModel, db_helper
 
 
-# http_bearer = HTTPBearer()
+http_bearer = HTTPBearer()
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/auth/login/",
 )
@@ -30,18 +33,6 @@ def hash_password(
     salt = bcrypt.gensalt()
     pwd_bytes: bytes = password.encode()
     return bcrypt.hashpw(pwd_bytes, salt)
-
-
-def validate_password(
-    password: str,
-    hashed_password: bytes,
-) -> bool:
-    """Validate Password against hashed version"""
-
-    return bcrypt.checkpw(
-        password=password.encode(),
-        hashed_password=hashed_password,
-    )
 
 
 async def registration(
@@ -67,45 +58,6 @@ async def registration(
         raise e
 
 
-async def query_user_by_email(email: str, db: AsyncSession) -> TraderModel:
-    """Query user by email"""
-
-    result = await db.execute(select(TraderModel).where(TraderModel.email == email))
-    return result.scalars().first()
-
-
-async def validate_auth_user(
-    email: str = Form(),
-    password: str = Form(),
-    db: AsyncSession = Depends(db_helper.get_scoped_session),
-) -> TraderModel:
-    """Validate authentication for user"""
-
-    user = await query_user_by_email(email, db)
-
-    unauthed_exc = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid username or password",
-    )
-
-    if not user:
-        raise unauthed_exc
-
-    if not validate_password(
-        password=password,
-        hashed_password=user.password,
-    ):
-        raise unauthed_exc
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="User inactive",
-        )
-
-    return user
-
-
 def get_current_token_payload(
     # credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
     token: str = Depends(oauth2_scheme),
@@ -126,15 +78,33 @@ def get_current_token_payload(
     return payload
 
 
-async def get_current_auth_user(
-    payload: dict = Depends(get_current_token_payload),
-    db: AsyncSession = Depends(db_helper.get_scoped_session),
+async def query_user_by_email(email: str, session: AsyncSession) -> TraderModel:
+    """Query user by email"""
+
+    result = await session.execute(
+        select(TraderModel).where(TraderModel.email == email)
+    )
+    return result.scalars().first()
+
+
+async def get_user_by_token_sub(
+    payload: dict,
+    session: AsyncSession = Depends(db_helper.scoped_session_dependency),
 ) -> TraderModel:
     """Get auth user"""
+    email = payload.get("sub", "Email not found")
+    print(email, "email")
 
-    email: str | None = payload.get("sub")
+    # result = await session.execute(
+    #     select(TraderModel).where(TraderModel.email == email)
+    # )
+    # user = result.scalars().first()
 
-    user = await query_user_by_email(email, db)
+    stat = select(TraderModel).order_by(TraderModel.id)
+    result = await session.execute(stat)
+    user = result.scalars().all()
+
+    print(user, "userrrrrrr")
 
     if user:
         return user
@@ -143,6 +113,40 @@ async def get_current_auth_user(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="token invalid (user not found)",
     )
+
+
+class UserGetterFromToken:
+    def __init__(self, token_type: str):
+        self.token_type = token_type
+
+    async def __call__(
+        self,
+        payload: dict = Depends(get_current_token_payload),
+        session: AsyncSession = Depends(db_helper.scoped_session_dependency),
+    ):
+        await validate_token_type(payload, self.token_type)
+
+        email = payload.get("sub", "Email not found")
+        result = await session.execute(
+            select(TraderModel).where(TraderModel.email == email)
+        )
+        user = result.scalars().first()
+
+        print(user, "userrrrrrr")
+
+        if user:
+            return user
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="token invalid (user not found)",
+        )
+
+        # return await get_user_by_token_sub(payload=payload)
+
+
+get_current_auth_user = UserGetterFromToken(ACCESS_TOKEN_TYPE)
+get_current_auth_user_for_refresh = UserGetterFromToken(REFRESH_TOKEN_TYPE)
 
 
 def get_current_active_auth_user(
