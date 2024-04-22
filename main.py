@@ -9,7 +9,6 @@ from api_v1.auth.views import router as auth_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     yield
 
 
