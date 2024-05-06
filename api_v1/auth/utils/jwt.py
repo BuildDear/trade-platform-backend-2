@@ -11,12 +11,15 @@ REFRESH_TOKEN_TYPE = "refresh"
 
 def encode_jwt(
     payload: dict,
-    private_key: str = settings.auth_jwt.private_key_path.read_text(),
+    private_key: str = settings.auth_jwt.private_key_path,
     algorithm: str = settings.auth_jwt.algorithm,
     expire_minutes: int = settings.auth_jwt.access_token_expire_minutes,
     expire_timedelta: timedelta | None = None,
 ) -> str:
     """Encode JWT with payload"""
+
+    if private_key is None:
+        raise ValueError("Private key path is not set.")
 
     to_encode = payload.copy()
     now = datetime.utcnow()
@@ -40,10 +43,13 @@ def encode_jwt(
 
 def decode_jwt(
     token: str | bytes,
-    public_key: str = settings.auth_jwt.public_key_path.read_text(),
+    public_key: str = settings.auth_jwt.public_key_path,
     algorithm: str = settings.auth_jwt.algorithm,
 ) -> dict:
     """Decode JWT token"""
+
+    if public_key is None:
+        raise ValueError("Private key path is not set.")
 
     decoded = jwt.decode(
         token,
@@ -59,6 +65,7 @@ def create_jwt(
     expire_minutes: int = settings.auth_jwt.access_token_expire_minutes,
     expire_timedelta: timedelta | None = None,
 ) -> str:
+
     jwt_payload = {TOKEN_TYPE_FIELD: token_type}
     jwt_payload.update(token_data)
     return encode_jwt(
